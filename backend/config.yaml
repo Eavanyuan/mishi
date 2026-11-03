@@ -1,0 +1,49 @@
+# 觅诗后端配置
+
+server:
+  address: ":8080"
+  mode: "debug"  # debug/release/test
+  read_timeout: 30  # 秒
+  write_timeout: 30  # 秒
+
+database:
+  host: "postgres"
+  port: 5432
+  user: "mishi"
+  password: ""
+  dbname: "mishi"
+  sslmode: "disable"
+  max_conns: 20
+
+redis:
+  host: "redis"
+  port: 6379
+  password: ""
+  db: 0
+
+ai:
+  provider: "deepseek" # openai/deepseek/seeddance
+  timeout_seconds: 30
+  max_retries: 2
+  openai:
+    api_key: ""
+    base_url: "https://api.openai.com/v1"
+    llm_model: "gpt-4o-mini"
+    tts_model: "gpt-4o-mini-tts"
+    video_model: "sora-2"
+  deepseek:
+    api_key: ""
+    base_url: "https://api.deepseek.com/v1"
+    llm_model: "deepseek-chat"
+    tts_model: ""
+    video_model: ""
+  seeddance:
+    api_key: ""
+    base_url: ""
+    llm_model: "seeddance2.0"
+    tts_model: "seeddance2.0-tts"
+    video_model: "seeddance2.0-video"
+
+log:
+  level: "info"  # debug/info/warn/error
+  format: "json" # json/text

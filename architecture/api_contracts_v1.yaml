@@ -1,0 +1,355 @@
+openapi: 3.0.3
+info:
+  title: Mishi API Contracts
+  version: 1.0.0
+  description: |
+    核心 API 契约（Task 3），覆盖地理推荐、诗词详情、打卡与动画任务。
+servers:
+  - url: https://api.mishi.app
+
+tags:
+  - name: geo
+  - name: poems
+  - name: checkin
+  - name: routes
+  - name: media
+  - name: ai
+
+paths:
+  /geo/nearby:
+    get:
+      tags: [geo]
+      summary: 查询附近诗词点位
+      parameters:
+        - in: query
+          name: lat
+          required: true
+          schema: { type: number, format: double }
+        - in: query
+          name: lng
+          required: true
+          schema: { type: number, format: double }
+        - in: query
+          name: radius_m
+          required: false
+          schema: { type: integer, default: 2000 }
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NearbyResponse'
+
+  /poems/recommend:
+    get:
+      tags: [poems]
+      summary: 获取到地推荐（含季节因子）
+      parameters:
+        - in: query
+          name: lat
+          required: true
+          schema: { type: number, format: double }
+        - in: query
+          name: lng
+          required: true
+          schema: { type: number, format: double }
+        - in: query
+          name: season
+          required: false
+          schema: { type: string, enum: [spring, summer, autumn, winter] }
+        - in: query
+          name: weather
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendResponse'
+
+  /poems/{poem_id}:
+    get:
+      tags: [poems]
+      summary: 获取诗词详情
+      parameters:
+        - in: path
+          name: poem_id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoemDetailResponse'
+
+  /checkins:
+    post:
+      tags: [checkin]
+      summary: 创建打卡记录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckinCreateRequest'
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckinCreateResponse'
+
+  /routes/{city_code}:
+    get:
+      tags: [routes]
+      summary: 获取城市诗词旅行路线
+      parameters:
+        - in: path
+          name: city_code
+          required: true
+          schema: { type: string }
+        - in: query
+          name: duration
+          required: false
+          schema: { type: string, enum: [half_day, one_day], default: half_day }
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteResponse'
+
+  /audio/{poem_id}:
+    get:
+      tags: [media]
+      summary: 获取朗读音频地址
+      parameters:
+        - in: path
+          name: poem_id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AudioResponse'
+
+  /video/jobs:
+    post:
+      tags: [ai]
+      summary: 创建动画生成任务
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoJobCreateRequest'
+      responses:
+        '202':
+          description: accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoJobCreateResponse'
+
+  /video/jobs/{job_id}:
+    get:
+      tags: [ai]
+      summary: 查询动画任务状态
+      parameters:
+        - in: path
+          name: job_id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoJobStatusResponse'
+
+components:
+  schemas:
+    BaseMeta:
+      type: object
+      properties:
+        trace_id: { type: string }
+
+    NearbyPOI:
+      type: object
+      properties:
+        poi_id: { type: string }
+        name: { type: string }
+        distance_m: { type: integer }
+        historical_name: { type: string }
+        confidence: { type: number, format: float }
+
+    NearbyResponse:
+      type: object
+      properties:
+        code: { type: string, example: OK }
+        message: { type: string, example: success }
+        data:
+          type: object
+          properties:
+            pois:
+              type: array
+              items: { $ref: '#/components/schemas/NearbyPOI' }
+        meta: { $ref: '#/components/schemas/BaseMeta' }
+
+    RecommendItem:
+      type: object
+      properties:
+        poem_id: { type: string }
+        title: { type: string }
+        poet: { type: string }
+        era: { type: string }
+        reason:
+          type: object
+          properties:
+            distance_score: { type: number, format: float }
+            season_score: { type: number, format: float }
+            heat_score: { type: number, format: float }
+        season_tag: { type: string }
+        solar_term: { type: string }
+
+    RecommendResponse:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/RecommendItem' }
+        meta: { $ref: '#/components/schemas/BaseMeta' }
+
+    PoemDetailResponse:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            poem_id: { type: string }
+            title: { type: string }
+            poet: { type: string }
+            era: { type: string }
+            content: { type: string }
+            annotations: { type: string }
+            translation: { type: string }
+            best_season: { type: string }
+            interpretation:
+              type: object
+              properties:
+                textbook: { type: string }
+                academic: { type: string }
+                popular: { type: string }
+                source: { type: string }
+
+    CheckinCreateRequest:
+      type: object
+      required: [poi_id, poem_id, lat, lng, occurred_at]
+      properties:
+        poi_id: { type: string }
+        poem_id: { type: string }
+        lat: { type: number, format: double }
+        lng: { type: number, format: double }
+        occurred_at: { type: string, format: date-time }
+        season: { type: string }
+
+    CheckinCreateResponse:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            checkin_id: { type: string }
+            card_id: { type: string }
+            route_progress:
+              type: object
+              properties:
+                total: { type: integer }
+                completed: { type: integer }
+
+    RouteResponse:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            city_code: { type: string }
+            duration: { type: string }
+            recommended_season: { type: string }
+            points:
+              type: array
+              items:
+                type: object
+                properties:
+                  poi_id: { type: string }
+                  name: { type: string }
+                  poem_title: { type: string }
+                  checked_in: { type: boolean }
+
+    AudioResponse:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            poem_id: { type: string }
+            voice_style: { type: string }
+            audio_url: { type: string }
+            expires_at: { type: string, format: date-time }
+
+    VideoJobCreateRequest:
+      type: object
+      required: [poem_id, style, duration_sec]
+      properties:
+        poem_id: { type: string }
+        style: { type: string, enum: [xieyi, realistic] }
+        duration_sec: { type: integer, enum: [15, 30] }
+
+    VideoJobCreateResponse:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            job_id: { type: string }
+            status: { type: string, enum: [queued] }
+            eta_sec: { type: integer }
+
+    VideoJobStatusResponse:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            job_id: { type: string }
+            status: { type: string, enum: [queued, running, succeeded, failed] }
+            video_url: { type: string, nullable: true }
+            error_message: { type: string, nullable: true }

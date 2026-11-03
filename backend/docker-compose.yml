@@ -1,0 +1,79 @@
+services:
+  postgres:
+    image: postgis/postgis:15-3.3
+    container_name: mishi-postgres
+    environment:
+      POSTGRES_DB: mishi
+      POSTGRES_USER: mishi
+      POSTGRES_PASSWORD: ${MISHI_DATABASE_PASSWORD:-mishi_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../sql/init-database-v1.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mishi -d mishi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: mishi-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: mishi-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      MISHI_DATABASE_HOST: postgres
+      MISHI_DATABASE_PASSWORD: ${MISHI_DATABASE_PASSWORD:-mishi_password}
+      MISHI_REDIS_HOST: redis
+      MISHI_SERVER_MODE: ${MISHI_SERVER_MODE:-debug}
+      MISHI_JWT_SECRET: ${MISHI_JWT_SECRET:-}
+      MISHI_AI_PROVIDER: ${MISHI_AI_PROVIDER:-deepseek}
+      MISHI_AI_TIMEOUT_SECONDS: ${MISHI_AI_TIMEOUT_SECONDS:-30}
+      MISHI_AI_MAX_RETRIES: ${MISHI_AI_MAX_RETRIES:-2}
+      MISHI_AI_OPENAI_API_KEY: ${MISHI_AI_OPENAI_API_KEY:-}
+      MISHI_AI_OPENAI_BASE_URL: ${MISHI_AI_OPENAI_BASE_URL:-https://api.openai.com/v1}
+      MISHI_AI_OPENAI_LLM_MODEL: ${MISHI_AI_OPENAI_LLM_MODEL:-gpt-4o-mini}
+      MISHI_AI_OPENAI_TTS_MODEL: ${MISHI_AI_OPENAI_TTS_MODEL:-gpt-4o-mini-tts}
+      MISHI_AI_OPENAI_VIDEO_MODEL: ${MISHI_AI_OPENAI_VIDEO_MODEL:-sora-2}
+      MISHI_AI_DEEPSEEK_API_KEY: ${MISHI_AI_DEEPSEEK_API_KEY:-}
+      MISHI_AI_DEEPSEEK_BASE_URL: ${MISHI_AI_DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}
+      MISHI_AI_DEEPSEEK_LLM_MODEL: ${MISHI_AI_DEEPSEEK_LLM_MODEL:-deepseek-chat}
+      MISHI_AI_DEEPSEEK_TTS_MODEL: ${MISHI_AI_DEEPSEEK_TTS_MODEL:-}
+      MISHI_AI_DEEPSEEK_VIDEO_MODEL: ${MISHI_AI_DEEPSEEK_VIDEO_MODEL:-}
+      MISHI_AI_SEEDDANCE_API_KEY: ${MISHI_AI_SEEDDANCE_API_KEY:-}
+      MISHI_AI_SEEDDANCE_BASE_URL: ${MISHI_AI_SEEDDANCE_BASE_URL:-}
+      MISHI_AI_SEEDDANCE_LLM_MODEL: ${MISHI_AI_SEEDDANCE_LLM_MODEL:-seeddance2.0}
+      MISHI_AI_SEEDDANCE_TTS_MODEL: ${MISHI_AI_SEEDDANCE_TTS_MODEL:-seeddance2.0-tts}
+      MISHI_AI_SEEDDANCE_VIDEO_MODEL: ${MISHI_AI_SEEDDANCE_VIDEO_MODEL:-seeddance2.0-video}
+    volumes:
+      - ./config.yaml:/root/config.yaml
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

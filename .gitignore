@@ -1,0 +1,51 @@
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+*.local
+
+# macOS and editor files
+.DS_Store
+.idea/
+*.iml
+.vscode/
+
+# Flutter and Dart generated files
+.dart_tool/
+**/.dart_tool/
+build/
+**/build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.fvm/
+.fvm_cache/
+
+# JavaScript dependencies and outputs
+node_modules/
+**/node_modules/
+dist/
+**/dist
+.next/
+coverage/
+
+# Browser automation artifacts and local agent state
+.playwright-cli/
+.openclaw/
+memory/
+skills/
+AGENTS.md
+BOOTSTRAP.md
+HEARTBEAT.md
+IDENTITY.md
+SOUL.md
+TOOLS.md
+USER.md
+
+# Runtime logs
+*.log
+collab/handoff/runtime/

@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>觅诗 - 高保真原型</title>
+  <style>
+    :root {
+      --primary: #0e7a7d;
+      --background: #fff9ee;
+      --accent: #e14b34;
+      --text-primary: #172222;
+      --text-secondary: #5b5b5b;
+      --surface: rgba(255, 255, 255, 0.78);
+      --success: #2e7d32;
+      --warning: #d9822b;
+      --shadow: 0 18px 48px rgba(14, 122, 125, 0.2);
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 10px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans SC", "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text-primary);
+      background:
+        radial-gradient(1000px 500px at 100% 0%, rgba(14, 122, 125, 0.22), transparent 50%),
+        radial-gradient(600px 400px at 0% 100%, rgba(225, 75, 52, 0.2), transparent 45%),
+        var(--background);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .prototype-shell {
+      width: min(1100px, 100%);
+      display: grid;
+      gap: 20px;
+      animation: fadeIn 560ms ease;
+    }
+
+    .topbar {
+      background: rgba(255, 255, 255, 0.74);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .brand {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .brand strong {
+      color: var(--primary);
+      font-family: "Noto Serif SC", "Source Han Serif SC", serif;
+      font-size: 16px;
+      letter-spacing: 0.08em;
+    }
+
+    .screen-tabs {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .tab {
+      border: 0;
+      border-radius: 10px;
+      padding: 9px 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: #fff;
+      cursor: pointer;
+      transition: 220ms ease;
+    }
+
+    .tab.active {
+      color: #fff;
+      background: var(--primary);
+      box-shadow: 0 8px 18px rgba(14, 122, 125, 0.28);
+    }
+
+    .preview {
+      display: grid;
+      place-items: center;
+      min-height: 760px;
+    }
+
+    .phone {
+      width: min(390px, 100%);
+      height: 760px;
+      border-radius: 34px;
+      background: linear-gradient(168deg, #fffdf7, #fff2df);
+      box-shadow: 0 28px 80px rgba(30, 30, 30, 0.25);
+      padding: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .phone::before {
+      content: "";
+      position: absolute;
+      width: 126px;
+      height: 28px;
+      border-radius: 0 0 14px 14px;
+      background: #121212;
+      left: 50%;
+      top: 0;
+      transform: translateX(-50%);
+      z-index: 20;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 10px;
+      border-radius: 28px;
+      overflow: hidden;
+      background:
+        radial-gradient(500px 300px at 100% 0%, rgba(14, 122, 125, 0.22), transparent 60%),
+        #f8f4eb;
+      opacity: 0;
+      transform: translateY(10px) scale(0.992);
+      pointer-events: none;
+      transition: 300ms ease;
+    }
+
+    .screen.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .status {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 18px 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .content {
+      padding: 10px 18px 22px;
+      height: calc(100% - 28px);
+      overflow: hidden;
+      display: grid;
+      align-content: start;
+      gap: 14px;
+    }
+
+    .title {
+      font-family: "Noto Serif SC", "Source Han Serif SC", serif;
+      font-size: 28px;
+      line-height: 1.2;
+      color: var(--primary);
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      border-radius: var(--radius-md);
+      box-shadow: 0 10px 26px rgba(14, 122, 125, 0.12);
+      padding: 14px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      flex: 1;
+      border: 0;
+      border-radius: 12px;
+      height: 46px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-ghost {
+      background: #fff;
+      color: var(--primary);
+      border: 1px solid rgba(14, 122, 125, 0.24);
+    }
+
+    .chip {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: rgba(14, 122, 125, 0.14);
+      color: var(--primary);
+      margin-right: 8px;
+    }
+
+    .map {
+      height: 320px;
+      border-radius: 18px;
+      background:
+        linear-gradient(130deg, rgba(14, 122, 125, 0.24), rgba(14, 122, 125, 0.1)),
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5) 10px, transparent 10px, transparent 20px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pin {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 8px rgba(225, 75, 52, 0.28);
+    }
+
+    .bottom-nav {
+      margin-top: auto;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 14px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      text-align: center;
+      padding: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .bottom-nav .active {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .poem {
+      font-family: "Noto Serif SC", "Source Han Serif SC", serif;
+      line-height: 1.92;
+      font-size: 20px;
+      color: #253233;
+      letter-spacing: 0.03em;
+    }
+
+    .progress {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(14, 122, 125, 0.2);
+      overflow: hidden;
+    }
+
+    .progress > span {
+      display: block;
+      width: 45%;
+      height: 100%;
+      background: var(--primary);
+    }
+
+    .floating-player {
+      margin-top: auto;
+      background: rgba(14, 122, 125, 0.95);
+      color: #fff;
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      .screen-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .phone { height: 730px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="prototype-shell">
+    <div class="topbar">
+      <div class="brand">
+        <strong>觅诗</strong>
+        <span>高保真原型 · 现代文艺版（季节+打卡）</span>
+      </div>
+      <div class="screen-tabs" id="tabs"></div>
+    </div>
+
+    <div class="preview">
+      <div class="phone">
+        <section class="screen active" data-screen="启动页">
+          <div class="status"><span>9:41</span><span>5G · 84%</span></div>
+          <div class="content" style="justify-content:center;gap:20px;">
+            <div class="title">觅诗</div>
+            <div class="subtitle">你所在之处，正有一首诗在等你。</div>
+            <div class="card" style="height:300px;display:grid;place-items:center;background:linear-gradient(180deg,#fff,rgba(225,75,52,0.14));">
+              山岚、远桥、微雨、行人
+            </div>
+            <button class="btn btn-primary">开启诗意旅程</button>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="权限引导">
+          <div class="status"><span>9:41</span><span>5G · 84%</span></div>
+          <div class="content">
+            <div class="title" style="font-size:24px;">授权后体验更完整</div>
+            <div class="card">定位权限：到达古诗相关地点时主动提醒你。</div>
+            <div class="card">通知权限：不打扰模式下智能推送“此地有诗”。</div>
+            <div class="card">媒体权限：保存你生成的诗意动画短片。</div>
+            <button class="btn btn-primary">同意并继续</button>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="地图首页">
+          <div class="status"><span>9:41</span><span>5G · 84%</span></div>
+          <div class="content">
+            <div class="card" style="padding:10px 12px;">搜索地名 / 诗词 / 诗人</div>
+            <div class="map">
+              <div class="pin" style="left:68%;top:30%;"></div>
+              <div class="pin" style="left:40%;top:52%;background:var(--primary);"></div>
+              <div class="pin" style="left:22%;top:40%;"></div>
+            </div>
+            <div class="card" style="display:grid;gap:8px;">
+              <div style="font-weight:700;color:var(--primary);">此地推荐 · 《登鹳雀楼》</div>
+              <div class="subtitle">王之涣 · 距离 280m · 夕照临河，层楼远眺</div>
+              <div><span class="chip">季节：秋</span><span class="chip">节气：白露</span></div>
+              <div class="btn-row">
+                <button class="btn btn-primary">去感受</button>
+                <button class="btn btn-ghost">立即打卡</button>
+                <button class="btn btn-ghost">稍后提醒</button>
+              </div>
+            </div>
+            <div class="bottom-nav"><span class="active">首页</span><span>附近</span><span>播放</span><span>我的</span></div>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="到地弹层">
+          <div class="status"><span>9:41</span><span>5G · 84%</span></div>
+          <div class="content" style="justify-content:end;">
+            <div class="card" style="padding:18px;display:grid;gap:10px;">
+              <div class="chip">此地有诗</div>
+              <div style="font-size:20px;font-family:'Noto Serif SC','Source Han Serif SC',serif;">《枫桥夜泊》</div>
+              <div class="subtitle">月落乌啼霜满天，江枫渔火对愁眠。</div>
+              <div><span class="chip">当前季节：秋</span><span class="chip">最佳体验：秋冬</span></div>
+              <div class="btn-row">
+                <button class="btn btn-primary">去感受</button>
+                <button class="btn btn-ghost">立即打卡</button>
+                <button class="btn btn-ghost">稍后提醒</button>
+              </div>
+            </div>
+            <div class="bottom-nav"><span class="active">首页</span><span>附近</span><span>播放</span><span>我的</span></div>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="诗词详情">
+          <div class="status"><span>9:41</span><span>5G · 84%</span></div>
+          <div class="content">
+            <div>
+              <span class="chip">今称：北京 · 琉璃厂</span>
+              <span class="chip" style="background:rgba(225,75,52,0.16);color:var(--accent);">古称：宣南</span>
+              <span class="chip">最佳季节：秋</span>
+            </div>
+            <div class="title" style="font-size:26px;">《雨霖铃》</div>
+            <div class="subtitle">柳永 · 北宋</div>
+            <div class="poem">寒蝉凄切，对长亭晚，骤雨初歇。<br/>都门帐饮无绪，留恋处，兰舟催发。</div>
+            <div class="card">权威解读：通过“寒蝉”“长亭”“骤雨”构建离别情境，情景交融，层层递进。</div>
+            <div class="btn-row">
+              <button class="btn btn-ghost">朗读</button>
+              <button class="btn btn-primary">生成动画</button>
+            </div>
+            <div class="floating-player"><span>正在播放 · 寒蝉凄切</span><span>暂停</span></div>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="解读切换">
+          <div class="status"><span>9:41</span><span>5G · 84%</span></div>
+          <div class="content">
+            <div class="btn-row">
+              <button class="btn btn-primary">教材版</button>
+              <button class="btn btn-ghost">学术版</button>
+              <button class="btn btn-ghost">通俗版</button>
+            </div>
+            <div class="card">教材版：本词通过景物烘托离情，核心在“离别之苦”和“羁旅行役”。</div>
+            <div class="card">学术来源：《宋词鉴赏辞典》2023 修订版。</div>
+            <div class="card">更新时间：2026-03-02</div>
+            <div class="bottom-nav"><span>首页</span><span>附近</span><span class="active">播放</span><span>我的</span></div>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="朗读播放">
+          <div class="status"><span>9:41</span><span>5G · 84%</span></div>
+          <div class="content">
+            <div class="card" style="height:220px;display:grid;place-items:center;">意境封面图</div>
+            <div class="poem" style="font-size:18px;line-height:1.8;">寒蝉凄切，对长亭晚，骤雨初歇。<br/><span style="color:var(--accent);">都门帐饮无绪，留恋处，兰舟催发。</span></div>
+            <div class="progress"><span></span></div>
+            <div class="btn-row">
+              <button class="btn btn-ghost">0.8x</button>
+              <button class="btn btn-primary">播放</button>
+              <button class="btn btn-ghost">1.2x</button>
+            </div>
+            <div class="card">氛围音：江风夜雨 · 已开启</div>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="动画生成">
+          <div class="status"><span>9:41</span><span>5G · 84%</span></div>
+          <div class="content">
+            <div class="title" style="font-size:24px;">诗意动画</div>
+            <div class="card">风格：写意水墨 / 写实电影</div>
+            <div class="card">时长：15s / 30s</div>
+            <button class="btn btn-primary">开始生成</button>
+            <div class="card" style="border-left:4px solid var(--warning);">
+              排队中：前方 3 人 · 预计 42 秒
+            </div>
+            <div class="bottom-nav"><span>首页</span><span>附近</span><span class="active">播放</span><span>我的</span></div>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="动画结果">
+          <div class="status"><span>9:41</span><span>5G · 84%</span></div>
+          <div class="content">
+            <div class="card" style="height:290px;display:grid;place-items:center;background:linear-gradient(160deg,rgba(14,122,125,0.16),rgba(225,75,52,0.25));">15s 动画预览</div>
+            <div class="card" style="color:var(--success);">已生成成功</div>
+            <div class="btn-row">
+              <button class="btn btn-ghost">保存本地</button>
+              <button class="btn btn-primary">分享</button>
+            </div>
+            <button class="btn btn-ghost">再次生成</button>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="打卡弹层">
+          <div class="status"><span>9:41</span><span>5G · 84%</span></div>
+          <div class="content" style="justify-content:end;">
+            <div class="card" style="display:grid;gap:10px;">
+              <div><span class="chip">打卡点已到达</span><span class="chip">秋·白露</span></div>
+              <div style="font-size:20px;font-family:'Noto Serif SC','Source Han Serif SC',serif;">琉璃厂 · 诗词打卡</div>
+              <div class="subtitle">“寒蝉凄切，对长亭晚，骤雨初歇。”</div>
+              <div class="subtitle">时间：2026-03-02 14:35</div>
+              <div class="btn-row">
+                <button class="btn btn-primary">确认打卡</button>
+                <button class="btn btn-ghost">生成打卡卡片</button>
+              </div>
+            </div>
+            <div class="bottom-nav"><span class="active">首页</span><span>附近</span><span>播放</span><span>我的</span></div>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="旅行路线">
+          <div class="status"><span>9:41</span><span>5G · 84%</span></div>
+          <div class="content">
+            <div class="title" style="font-size:24px;">北京 · 诗词旅行线</div>
+            <div class="subtitle">半日路线：琉璃厂 → 陶然亭 → 卢沟晓月</div>
+            <div class="card">路线进度：2 / 5 已打卡</div>
+            <div class="card">推荐季节：秋季（体验评分更高）</div>
+            <div class="card">下一站：陶然亭 · 《赋得古原草送别》 · 距离 1.3km</div>
+            <div class="btn-row">
+              <button class="btn btn-primary">继续打卡</button>
+              <button class="btn btn-ghost">查看一日路线</button>
+            </div>
+            <div class="bottom-nav"><span>首页</span><span class="active">附近</span><span>播放</span><span>我的</span></div>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="个人中心">
+          <div class="status"><span>9:41</span><span>5G · 84%</span></div>
+          <div class="content">
+            <div class="title" style="font-size:24px;">我的觅诗</div>
+            <div class="card">收藏诗词：42 首</div>
+            <div class="card">足迹城市：北京 / 杭州 / 西安</div>
+            <div class="card">旅行打卡：18 次 · 已点亮 9 个诗词地点</div>
+            <div class="card">路线成就：半日路线 3 条 · 一日路线 1 条</div>
+            <div class="card">动画记录：8 条</div>
+            <div class="card">设置：权限管理 / 通知策略 / 隐私条款</div>
+            <div class="bottom-nav"><span>首页</span><span>附近</span><span>播放</span><span class="active">我的</span></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const screens = [...document.querySelectorAll('.screen')];
+    const tabWrap = document.getElementById('tabs');
+
+    screens.forEach((screen, i) => {
+      const label = screen.dataset.screen;
+      const btn = document.createElement('button');
+      btn.className = 'tab' + (i === 0 ? ' active' : '');
+      btn.textContent = label;
+      btn.addEventListener('click', () => {
+        screens.forEach(s => s.classList.remove('active'));
+        [...tabWrap.children].forEach(t => t.classList.remove('active'));
+        screen.classList.add('active');
+        btn.classList.add('active');
+      });
+      tabWrap.appendChild(btn);
+    });
+  </script>
+</body>
+</html>
