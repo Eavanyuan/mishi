@@ -6,6 +6,7 @@
 **/.env.*
 !**/.env.example
 *.local
+*.bak
 
 # macOS and editor files
 .DS_Store
